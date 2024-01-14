@@ -1,4 +1,5 @@
 import json
+from json import JSONDecodeError
 
 import requests
 from bs4 import BeautifulSoup
@@ -28,8 +29,16 @@ class ShinserviceScraper:
 
     @classmethod
     def save_data(cls, data: dict, file_path: str) -> None:
-        with open(file_path, "a", encoding="utf-8") as file:
-            json.dump(data, file, indent=2, ensure_ascii=False)
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                read_data = json.load(file)
+        except JSONDecodeError:
+            read_data = {}
+
+        read_data.update(data)
+
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(read_data, file, indent=2, ensure_ascii=False)
 
     @staticmethod
     def choose_tire_size(page_url: str):
