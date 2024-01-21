@@ -16,7 +16,8 @@ class TyreScraper:
         except JSONDecodeError:
             read_data = {}
 
-        read_data.update(data)
+        for title, info in data.items():
+            read_data[title] = info
 
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(read_data, file, indent=2, ensure_ascii=False)
@@ -26,7 +27,8 @@ class TyreScraper:
             with open(file_path, "r", encoding="utf-8") as file:
                 raw_data = json.load(file)
                 print(len(raw_data))  # may delete
-                for title, price in raw_data.items():
+                sorted_data_by_name = {key: raw_data[key] for key in sorted(raw_data)}
+                for title, price in sorted_data_by_name.items():
                     print(f"{title} - {price}")
         except JSONDecodeError:
             print("Данные отсутствуют!")
@@ -58,10 +60,11 @@ class ShinserviceScraper(TyreScraper):
                 tyres = soup.find_all(class_="stp-catalog-card-goods")
                 for tyre in tyres:
                     title = tyre.find(class_="stp-catalog-card-title").text.strip()
+                    tyre_size = tyre.find("span", class_="goods-attribute-value").text.strip()
                     price = tyre.find(class_="stp-price_1").text.strip().replace(" ", "")
                     raw_link = tyre.find(class_="title__Link-sc-12e08d15-1 cQLJhK")
                     tyre_link = f"{main_url}{raw_link.get('href')}"
-                    tyres_dict[title] = price, tyre_link
+                    tyres_dict[title] = tyre_size, price, tyre_link
                 self.save_data(tyres_dict, DATA_PATH)
         else:
             print("Failed to retrieve the webpage. Status code:", page_response.status_code)
